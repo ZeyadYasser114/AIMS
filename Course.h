@@ -3,18 +3,17 @@
 
 #include <string>
 #include <vector>
-
 using namespace std;
 
 class Course {
 private:
-    string courseID;
-    string name;
-    int credits;
-    int capacity;
-    int enrolledCount;
-    string schedule;
-    string instructorID;
+    string         courseID;
+    string         name;
+    int            credits;
+    int            capacity;
+    int            enrolledCount;
+    string         schedule;
+    string         instructorID;
     vector<string> enrolledStudents;
 
 public:
@@ -22,14 +21,17 @@ public:
 
     string getCourseID();
     string getCourseName();
-    int getCredits();
-    int getCapacity();
-    int getEnrolledCount();
-    bool isAvailable();
+    string getInstructorID();
+    string getSchedule();
+    int    getCredits();
+    int    getCapacity();
+    int    getEnrolledCount();
+    bool   isAvailable();
+
+    vector<string> getEnrolledStudents();
     void addStudent(string studentID);
     void removeStudent(string studentID);
     void setInstructor(string professorID);
-    string getSchedule();
 };
 
 #endif

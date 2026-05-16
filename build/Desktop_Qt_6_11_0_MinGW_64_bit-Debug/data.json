@@ -1,0 +1,120 @@
+{
+    "admins": [
+        {
+            "email": "admin@uni.edu",
+            "id": "A001",
+            "password": "admin123",
+            "username": "admin_user"
+        }
+    ],
+    "courses": [
+        {
+            "capacity": 30,
+            "credits": 3,
+            "enrolledStudents": [
+                "S001",
+                "S002"
+            ],
+            "id": "CS101",
+            "instructorID": "P001",
+            "name": "Introduction to Programming",
+            "schedule": "MWF 9:00-10:00"
+        },
+        {
+            "capacity": 25,
+            "credits": 4,
+            "enrolledStudents": [
+                "S001"
+            ],
+            "id": "CS201",
+            "instructorID": "P002",
+            "name": "Data Structures",
+            "schedule": "TTh 10:00-11:30"
+        },
+        {
+            "capacity": 28,
+            "credits": 3,
+            "enrolledStudents": [
+                "S001"
+            ],
+            "id": "CS301",
+            "instructorID": "P001",
+            "name": "Algorithms",
+            "schedule": "MWF 11:00-12:00"
+        }
+    ],
+    "professors": [
+        {
+            "assignedCourses": [
+                "CS101",
+                "CS301"
+            ],
+            "department": "Computer Science",
+            "email": "rj@uni.edu",
+            "id": "P001",
+            "name": "Dr. Robert Johnson",
+            "officeHours": "",
+            "password": "prof123"
+        },
+        {
+            "assignedCourses": [
+                "CS201"
+            ],
+            "department": "Computer Science",
+            "email": "sw@uni.edu",
+            "id": "P002",
+            "name": "Dr. Sarah Williams",
+            "officeHours": "",
+            "password": "prof456"
+        }
+    ],
+    "students": [
+        {
+            "balance": 500,
+            "email": "john@uni.edu",
+            "enrolledCourses": [
+                "CS101",
+                "CS201",
+                "CS301"
+            ],
+            "gpa": 4,
+            "grades": {
+                "CS101": "",
+                "CS201": "",
+                "CS301": "A"
+            },
+            "id": "S001",
+            "name": "John Smith",
+            "password": "pass123",
+            "scholarship": true
+        },
+        {
+            "balance": 0,
+            "email": "jane@uni.edu",
+            "enrolledCourses": [
+                "CS101"
+            ],
+            "gpa": 0,
+            "grades": {
+                "CS101": ""
+            },
+            "id": "S002",
+            "name": "Jane Doe",
+            "password": "pass456",
+            "scholarship": false
+        },
+        {
+            "balance": 0,
+            "email": "s-zeyad.saad@zewailcity.edu.eg",
+            "enrolledCourses": [
+            ],
+            "gpa": 0,
+            "grades": {
+            },
+            "id": "S003",
+            "name": "Zeyad Yasser Gamal",
+            "password": "pass123",
+            "scholarship": false
+        }
+    ]
+}

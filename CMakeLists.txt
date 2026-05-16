@@ -5,12 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core)
 
 add_executable(UCMS
     main.cpp
     mainwindow.cpp
     mainwindow.h
+    DataStore.cpp
+    DataStore.h
     Course.cpp
     Course.h
     CourseManager.cpp
@@ -21,8 +23,6 @@ add_executable(UCMS
     Professor.h
     Admin.cpp
     Admin.h
-
-
     AuthenticationManager.cpp
     AuthenticationManager.h
     Studentdashboard.h
@@ -31,6 +31,8 @@ add_executable(UCMS
     Professordashboard.cpp
     Admindashboard.h
     Admindashboard.cpp
+    Datastore.h
+    datastore.h datastore.cpp
 )
 
-target_link_libraries(UCMS Qt6::Widgets)
+target_link_libraries(UCMS Qt6::Widgets Qt6::Core)

@@ -7,6 +7,8 @@
 #include <QTableWidget>
 #include <QStackedWidget>
 #include <QLineEdit>
+#include <QComboBox>
+#include <functional>
 #include <string>
 #include <vector>
 using namespace std;
@@ -22,6 +24,7 @@ public:
     explicit ProfessorDashboard(Professor *professor,
                                 CourseManager *cm,
                                 vector<Student> *students,
+                                function<void()> saveCallback,
                                 QWidget *parent = nullptr);
 
 private slots:
@@ -30,15 +33,20 @@ private slots:
     void onLogout();
 
 private:
-    Professor     *professor;
-    CourseManager *courseManager;
-    vector<Student> *students;
+    Professor        *professor;
+    CourseManager    *courseManager;
+    vector<Student>  *students;
+    function<void()>  save;
 
     QStackedWidget *stack;
+
+    QTableWidget *coursesTable;
+
     QLineEdit *gradeStudentID;
     QLineEdit *gradeCourseID;
-    QLineEdit *gradeValue;
+    QComboBox *gradeValue;
     QLabel    *gradeStatus;
+
     QLineEdit *officeHoursInput;
     QLabel    *officeStatus;
 
@@ -46,7 +54,10 @@ private:
     QWidget *makeCoursesPage();
     QWidget *makeGradesPage();
     QWidget *makeOfficeHoursPage();
-    QPushButton* makeNavButton(const QString &text);
+
+    void refreshCoursesPage();
+
+    QPushButton *makeNavButton(const QString &text);
 };
 
 #endif

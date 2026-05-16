@@ -6,15 +6,10 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
-
 #include <string>
-#include <vector>
 using namespace std;
 
-#include "Student.h"
-#include "Professor.h"
-#include "Admin.h"
-#include "CourseManager.h"
+#include "DataStore.h"
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -31,12 +26,7 @@ private:
     QComboBox *roleSelector;
     QLabel    *statusLabel;
 
-    vector<Student>   students;
-    vector<Professor> professors;
-    vector<Admin>     admins;
-    CourseManager     courseManager;
-
-    void seedData();
+    DataStore store;
 };
 
 #endif

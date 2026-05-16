@@ -5,10 +5,9 @@
 
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
-    seedData();
+    store.load();
 
     setWindowTitle("Academic Information Management System");
     setMinimumSize(420, 340);
@@ -21,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     QLabel *title = new QLabel("A I M S");
     title->setAlignment(Qt::AlignCenter);
-    title->setStyleSheet("color: #C8B89A; font-size: 32px; font-weight: sans;");
+    title->setStyleSheet("color: #C8B89A; font-size: 32px;");
 
     QLabel *sub = new QLabel("Academic Information Management System");
     sub->setAlignment(Qt::AlignCenter);
@@ -66,42 +65,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     layout->addWidget(statusLabel);
 
     setCentralWidget(central);
-
     connect(loginBtn, &QPushButton::clicked, this, &MainWindow::onLoginClicked);
-}
-
-void MainWindow::seedData() {
-    // Seed courses
-    courseManager.addCourse(Course("CS101", "Introduction to Programming", 3, 30, "MWF 9:00-10:00", "P001"));
-    courseManager.addCourse(Course("CS201", "Data Structures", 4, 25, "TTh 10:00-11:30", "P002"));
-    courseManager.addCourse(Course("CS301", "Algorithms", 3, 28, "MWF 11:00-12:00", "P001"));
-
-    // Seed students (enrolled in some courses)
-    Student s1("S001", "John Smith",  "john@uni.edu", "pass123");
-    s1.registerForCourse("CS101");
-    s1.registerForCourse("CS201");
-    s1.setGPA(3.85);
-    s1.setBalance(500.00);
-    s1.setScholarshipStatus(true);
-    students.push_back(s1);
-
-    Student s2("S002", "Jane Doe", "jane@uni.edu", "pass456");
-    s2.registerForCourse("CS101");
-    s2.setGPA(3.50);
-    students.push_back(s2);
-
-    // Seed professors
-    Professor p1("P001", "Dr. Robert Johnson", "rj@uni.edu", "prof123", "Computer Science");
-    p1.assignCourse("CS101");
-    p1.assignCourse("CS301");
-    professors.push_back(p1);
-
-    Professor p2("P002", "Dr. Sarah Williams", "sw@uni.edu", "prof456", "Computer Science");
-    p2.assignCourse("CS201");
-    professors.push_back(p2);
-
-    // Seed admin
-    admins.push_back(Admin("A001", "admin_user", "admin123", "admin@uni.edu"));
 }
 
 void MainWindow::onLoginClicked() {
@@ -110,29 +74,33 @@ void MainWindow::onLoginClicked() {
     string role = roleSelector->currentText().toStdString();
 
     if (role == "Student") {
-        for (auto &s : students) {
+        for (auto &s : store.students) {
             if (s.getStudentID() == id && s.validatePassword(pwd)) {
-                StudentDashboard *dash = new StudentDashboard(&s, &courseManager);
+                auto *dash = new StudentDashboard(&s, &store.courseManager,
+                                                  [this]{ store.save(); });
                 dash->show();
                 hide();
                 return;
             }
         }
     } else if (role == "Professor") {
-        for (auto &p : professors) {
+        for (auto &p : store.professors) {
             if (p.getProfessorID() == id && p.validatePassword(pwd)) {
-                ProfessorDashboard *dash = new ProfessorDashboard(
-                    &p, &courseManager, &students);
+                auto *dash = new ProfessorDashboard(&p, &store.courseManager,
+                                                    &store.students,
+                                                    [this]{ store.save(); });
                 dash->show();
                 hide();
                 return;
             }
         }
     } else if (role == "Admin") {
-        for (auto &a : admins) {
+        for (auto &a : store.admins) {
             if (a.getUsername() == id && a.validatePassword(pwd)) {
-                AdminDashboard *dash = new AdminDashboard(
-                    &a, &students, &professors, &courseManager);
+                auto *dash = new AdminDashboard(&a, &store.students,
+                                                &store.professors,
+                                                &store.courseManager,
+                                                [this]{ store.save(); });
                 dash->show();
                 hide();
                 return;

@@ -6,9 +6,12 @@
 #include <QHeaderView>
 
 ProfessorDashboard::ProfessorDashboard(Professor *p, CourseManager *cm,
-                                       vector<Student> *sts, QWidget *parent)
-    : QMainWindow(parent), professor(p), courseManager(cm), students(sts) {
-
+                                       vector<Student> *sts,
+                                       function<void()> saveCallback,
+                                       QWidget *parent)
+    : QMainWindow(parent), professor(p), courseManager(cm), students(sts),
+    save(saveCallback), coursesTable(nullptr)
+{
     setWindowTitle("AIMS - Professor Dashboard");
     setMinimumSize(800, 550);
 
@@ -18,7 +21,6 @@ ProfessorDashboard::ProfessorDashboard(Professor *p, CourseManager *cm,
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
-    // ── Sidebar ──
     QWidget *sidebar = new QWidget();
     sidebar->setFixedWidth(200);
     sidebar->setStyleSheet("background-color: #252523;");
@@ -27,7 +29,7 @@ ProfessorDashboard::ProfessorDashboard(Professor *p, CourseManager *cm,
     sideLayout->setContentsMargins(12, 20, 12, 20);
 
     QLabel *logo = new QLabel("A I M S");
-    logo->setStyleSheet("color: #C8B89A; font-size: 22px; font-weight: Sans; padding: 10px 0;");
+    logo->setStyleSheet("color: #C8B89A; font-size: 22px; padding: 10px 0;");
     QLabel *role = new QLabel("Professor Portal");
     role->setStyleSheet("color: #8A8478; font-size: 11px; margin-bottom: 20px;");
 
@@ -48,9 +50,9 @@ ProfessorDashboard::ProfessorDashboard(Professor *p, CourseManager *cm,
     sideLayout->addWidget(btnLogout);
 
     stack = new QStackedWidget();
-    stack->addWidget(makeHomePage());      // 0
-    stack->addWidget(makeCoursesPage());   // 1
-    stack->addWidget(makeGradesPage());    // 2
+    stack->addWidget(makeHomePage());        // 0
+    stack->addWidget(makeCoursesPage());     // 1
+    stack->addWidget(makeGradesPage());      // 2
     stack->addWidget(makeOfficeHoursPage()); // 3
 
     mainLayout->addWidget(sidebar);
@@ -58,7 +60,7 @@ ProfessorDashboard::ProfessorDashboard(Professor *p, CourseManager *cm,
     setCentralWidget(central);
 
     connect(btnHome,    &QPushButton::clicked, [this]{ stack->setCurrentIndex(0); });
-    connect(btnCourses, &QPushButton::clicked, [this]{ stack->setCurrentIndex(1); });
+    connect(btnCourses, &QPushButton::clicked, [this]{ refreshCoursesPage(); stack->setCurrentIndex(1); });
     connect(btnGrades,  &QPushButton::clicked, [this]{ stack->setCurrentIndex(2); });
     connect(btnOffice,  &QPushButton::clicked, [this]{ stack->setCurrentIndex(3); });
     connect(btnLogout,  &QPushButton::clicked, this, &ProfessorDashboard::onLogout);
@@ -69,10 +71,11 @@ QPushButton* ProfessorDashboard::makeNavButton(const QString &text) {
     btn->setStyleSheet(
         "QPushButton { background: transparent; color: #8A8478; "
         "text-align: left; padding: 10px 12px; border-radius: 6px; font-size: 13px; }"
-        "QPushButton:hover { background: #3A3A36; color: #ffffff; }"
-        );
+        "QPushButton:hover { background: #3A3A36; color: #F0EDE3; }");
     return btn;
 }
+
+// ── Home ──────────────────────────────────────────────────────────────────────
 
 QWidget* ProfessorDashboard::makeHomePage() {
     QWidget *page = new QWidget();
@@ -83,7 +86,7 @@ QWidget* ProfessorDashboard::makeHomePage() {
 
     QLabel *welcome = new QLabel(QString("Welcome, %1")
                                      .arg(QString::fromStdString(professor->getName())));
-    welcome->setStyleSheet("color: #ffffff; font-size: 24px; font-weight: bold;");
+    welcome->setStyleSheet("color: #F0EDE3; font-size: 24px; font-weight: bold;");
 
     QLabel *dept = new QLabel(QString("Department: %1  |  ID: %2")
                                   .arg(QString::fromStdString(professor->getDepartment()))
@@ -118,6 +121,8 @@ QWidget* ProfessorDashboard::makeHomePage() {
     return page;
 }
 
+// ── Courses ───────────────────────────────────────────────────────────────────
+
 QWidget* ProfessorDashboard::makeCoursesPage() {
     QWidget *page = new QWidget();
     page->setStyleSheet("background-color: #1C1C1A;");
@@ -126,40 +131,47 @@ QWidget* ProfessorDashboard::makeCoursesPage() {
     layout->setSpacing(16);
 
     QLabel *title = new QLabel("My Courses");
-    title->setStyleSheet("color: #ffffff; font-size: 22px; font-weight: bold;");
+    title->setStyleSheet("color: #F0EDE3; font-size: 22px; font-weight: bold;");
 
-    QTableWidget *table = new QTableWidget();
-    table->setColumnCount(4);
-    table->setHorizontalHeaderLabels({"Course ID", "Name", "Credits", "Enrolled"});
-    table->setStyleSheet(
-        "QTableWidget { background-color: #252523; color: #c0d0e0; "
+    coursesTable = new QTableWidget();
+    coursesTable->setColumnCount(4);
+    coursesTable->setHorizontalHeaderLabels({"Course ID", "Name", "Credits", "Enrolled"});
+    coursesTable->setStyleSheet(
+        "QTableWidget { background-color: #252523; color: #F0EDE3; "
         "gridline-color: #3A3A36; border: none; font-size: 13px; }"
         "QHeaderView::section { background-color: #1C1C1A; color: #C8B89A; "
         "padding: 8px; border: none; font-weight: bold; }"
-        "QTableWidget::item { padding: 8px; }"
-        );
-    table->horizontalHeader()->setStretchLastSection(true);
-    table->verticalHeader()->setVisible(false);
-    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-    auto assigned = professor->getAssignedCourses();
-    table->setRowCount(assigned.size());
-    for (int i = 0; i < (int)assigned.size(); i++) {
-        Course *c = courseManager->findCourse(assigned[i]);
-        table->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(assigned[i])));
-        table->setItem(i, 1, new QTableWidgetItem(
-                                 c ? QString::fromStdString(c->getCourseName()) : "N/A"));
-        table->setItem(i, 2, new QTableWidgetItem(
-                                 c ? QString::number(c->getCredits()) : "N/A"));
-        table->setItem(i, 3, new QTableWidgetItem(
-                                 c ? QString::number(c->getEnrolledCount()) : "N/A"));
-    }
+        "QTableWidget::item { padding: 8px; }");
+    coursesTable->horizontalHeader()->setStretchLastSection(true);
+    coursesTable->verticalHeader()->setVisible(false);
+    coursesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     layout->addWidget(title);
-    layout->addWidget(table);
+    layout->addWidget(coursesTable);
     layout->addStretch();
+
+    refreshCoursesPage();
     return page;
 }
+
+void ProfessorDashboard::refreshCoursesPage() {
+    if (!coursesTable) return;
+    auto assigned = professor->getAssignedCourses();
+    coursesTable->setRowCount(0);
+    coursesTable->setRowCount((int)assigned.size());
+    for (int i = 0; i < (int)assigned.size(); i++) {
+        Course *c = courseManager->findCourse(assigned[i]);
+        coursesTable->setItem(i, 0, new QTableWidgetItem(QString::fromStdString(assigned[i])));
+        coursesTable->setItem(i, 1, new QTableWidgetItem(
+                                        c ? QString::fromStdString(c->getCourseName()) : "N/A"));
+        coursesTable->setItem(i, 2, new QTableWidgetItem(
+                                        c ? QString::number(c->getCredits()) : "N/A"));
+        coursesTable->setItem(i, 3, new QTableWidgetItem(
+                                        c ? QString::number(c->getEnrolledCount()) : "N/A"));
+    }
+}
+
+// ── Grades ────────────────────────────────────────────────────────────────────
 
 QWidget* ProfessorDashboard::makeGradesPage() {
     QWidget *page = new QWidget();
@@ -169,30 +181,41 @@ QWidget* ProfessorDashboard::makeGradesPage() {
     layout->setSpacing(14);
 
     QLabel *title = new QLabel("Submit Grades");
-    title->setStyleSheet("color: #ffffff; font-size: 22px; font-weight: bold;");
+    title->setStyleSheet("color: #F0EDE3; font-size: 22px; font-weight: bold;");
+
+    QLabel *note = new QLabel(
+        "Submitting a grade will immediately update the student's GPA and persist to the database.");
+    note->setStyleSheet("color: #8A8478; font-size: 12px;");
+    note->setWordWrap(true);
 
     auto makeField = [](const QString &ph) {
         QLineEdit *f = new QLineEdit();
         f->setPlaceholderText(ph);
         f->setStyleSheet(
-            "background-color: #252523; color: #ffffff; border: 1px solid #3A3A36; "
+            "background-color: #252523; color: #F0EDE3; border: 1px solid #3A3A36; "
             "border-radius: 6px; padding: 8px; font-size: 13px;");
         return f;
     };
 
     gradeStudentID = makeField("Student ID (e.g. S001)");
     gradeCourseID  = makeField("Course ID (e.g. CS101)");
-    gradeValue     = makeField("Grade (e.g. A, B+, C)");
+
+    gradeValue = new QComboBox();
+    gradeValue->addItems({"A", "A-", "B+", "B", "B-", "C+", "C", "C-", "F"});
+    gradeValue->setStyleSheet(
+        "background-color: #252523; color: #F0EDE3; border: 1px solid #3A3A36; "
+        "border-radius: 6px; padding: 8px; font-size: 13px;");
 
     QPushButton *btn = new QPushButton("Submit Grade");
     btn->setStyleSheet(
-        "background-color: #C8B89A; color: white; padding: 9px; "
+        "background-color: #C8B89A; color: #1C1C1A; padding: 9px; "
         "border-radius: 6px; font-size: 13px; font-weight: bold;");
 
     gradeStatus = new QLabel("");
     gradeStatus->setStyleSheet("font-size: 13px;");
 
     layout->addWidget(title);
+    layout->addWidget(note);
     layout->addWidget(gradeStudentID);
     layout->addWidget(gradeCourseID);
     layout->addWidget(gradeValue);
@@ -204,6 +227,8 @@ QWidget* ProfessorDashboard::makeGradesPage() {
     return page;
 }
 
+// ── Office Hours ──────────────────────────────────────────────────────────────
+
 QWidget* ProfessorDashboard::makeOfficeHoursPage() {
     QWidget *page = new QWidget();
     page->setStyleSheet("background-color: #1C1C1A;");
@@ -212,17 +237,17 @@ QWidget* ProfessorDashboard::makeOfficeHoursPage() {
     layout->setSpacing(14);
 
     QLabel *title = new QLabel("Update Office Hours");
-    title->setStyleSheet("color: #ffffff; font-size: 22px; font-weight: bold;");
+    title->setStyleSheet("color: #F0EDE3; font-size: 22px; font-weight: bold;");
 
     officeHoursInput = new QLineEdit();
     officeHoursInput->setPlaceholderText("e.g. MW 2:00-4:00 PM, Room 305");
     officeHoursInput->setStyleSheet(
-        "background-color: #252523; color: #ffffff; border: 1px solid #3A3A36; "
+        "background-color: #252523; color: #F0EDE3; border: 1px solid #3A3A36; "
         "border-radius: 6px; padding: 8px; font-size: 13px;");
 
     QPushButton *btn = new QPushButton("Update");
     btn->setStyleSheet(
-        "background-color: #C8B89A; color: white; padding: 9px; "
+        "background-color: #C8B89A; color: #1C1C1A; padding: 9px; "
         "border-radius: 6px; font-size: 13px; font-weight: bold;");
 
     officeStatus = new QLabel("");
@@ -234,40 +259,88 @@ QWidget* ProfessorDashboard::makeOfficeHoursPage() {
     layout->addWidget(officeStatus);
     layout->addStretch();
 
-    connect(btn, &QPushButton::clicked,
-            this, &ProfessorDashboard::onUpdateOfficeHoursClicked);
+    connect(btn, &QPushButton::clicked, this, &ProfessorDashboard::onUpdateOfficeHoursClicked);
     return page;
 }
 
-void ProfessorDashboard::onSubmitGradeClicked() {
-    string sid   = gradeStudentID->text().toStdString();
-    string cid   = gradeCourseID->text().toStdString();
-    string grade = gradeValue->text().toStdString();
+// ── Slots ─────────────────────────────────────────────────────────────────────
 
-    if (sid.empty() || cid.empty() || grade.empty()) {
+void ProfessorDashboard::onSubmitGradeClicked() {
+    string sid   = gradeStudentID->text().trimmed().toStdString();
+    string cid   = gradeCourseID->text().trimmed().toStdString();
+    string grade = gradeValue->currentText().toStdString();
+
+    if (sid.empty() || cid.empty()) {
         gradeStatus->setStyleSheet("color: #C0745A; font-size: 13px;");
-        gradeStatus->setText("Please fill in all fields.");
+        gradeStatus->setText("Please fill in Student ID and Course ID.");
         return;
     }
-    professor->submitGrade(sid, cid, grade);
+
+    // Validate the professor actually teaches this course
+    bool teaches = false;
+    for (auto &c : professor->getAssignedCourses())
+        if (c == cid) { teaches = true; break; }
+    if (!teaches) {
+        gradeStatus->setStyleSheet("color: #C0745A; font-size: 13px;");
+        gradeStatus->setText("You are not the instructor for this course.");
+        return;
+    }
+
+    // Find the course for its credits
+    Course *course = courseManager->findCourse(cid);
+    if (!course) {
+        gradeStatus->setStyleSheet("color: #C0745A; font-size: 13px;");
+        gradeStatus->setText("Course not found.");
+        return;
+    }
+
+    // Find the student and confirm they are enrolled
+    Student *target = nullptr;
+    for (auto &s : *students)
+        if (s.getStudentID() == sid) { target = &s; break; }
+
+    if (!target) {
+        gradeStatus->setStyleSheet("color: #C0745A; font-size: 13px;");
+        gradeStatus->setText("Student not found.");
+        return;
+    }
+
+    bool enrolled = false;
+    for (auto &e : target->getEnrolledCourses())
+        if (e == cid) { enrolled = true; break; }
+    if (!enrolled) {
+        gradeStatus->setStyleSheet("color: #C0745A; font-size: 13px;");
+        gradeStatus->setText("Student is not enrolled in this course.");
+        return;
+    }
+
+    // Build credits map from courseManager for GPA calculation
+    map<string,int> creditsMap;
+    for (auto &c : courseManager->listAllCourses())
+        creditsMap[c.getCourseID()] = c.getCredits();
+
+    target->setGradeForCourse(cid, grade, creditsMap);
+    save();
+
     gradeStatus->setStyleSheet("color: #C8B89A; font-size: 13px;");
-    gradeStatus->setText(QString("Grade %1 submitted for student %2 in %3.")
+    gradeStatus->setText(QString("Grade %1 submitted for %2 in %3. New GPA: %4")
                              .arg(QString::fromStdString(grade))
                              .arg(QString::fromStdString(sid))
-                             .arg(QString::fromStdString(cid)));
+                             .arg(QString::fromStdString(cid))
+                             .arg(target->getGPA(), 0, 'f', 2));
     gradeStudentID->clear();
     gradeCourseID->clear();
-    gradeValue->clear();
 }
 
 void ProfessorDashboard::onUpdateOfficeHoursClicked() {
-    string hours = officeHoursInput->text().toStdString();
+    string hours = officeHoursInput->text().trimmed().toStdString();
     if (hours.empty()) {
         officeStatus->setStyleSheet("color: #C0745A; font-size: 13px;");
         officeStatus->setText("Please enter office hours.");
         return;
     }
     professor->updateOfficeHours(hours);
+    save();
     officeStatus->setStyleSheet("color: #C8B89A; font-size: 13px;");
     officeStatus->setText("Office hours updated successfully.");
     officeHoursInput->clear();

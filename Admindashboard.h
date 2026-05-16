@@ -8,6 +8,7 @@
 #include <QStackedWidget>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <functional>
 #include <string>
 #include <vector>
 using namespace std;
@@ -22,9 +23,10 @@ class AdminDashboard : public QMainWindow {
 
 public:
     explicit AdminDashboard(Admin *admin,
-                            vector<Student> *students,
+                            vector<Student>   *students,
                             vector<Professor> *professors,
-                            CourseManager *cm,
+                            CourseManager     *cm,
+                            function<void()>   saveCallback,
                             QWidget *parent = nullptr);
 
 private slots:
@@ -35,14 +37,23 @@ private slots:
     void onLogout();
 
 private:
-    Admin           *admin;
+    Admin             *admin;
     vector<Student>   *students;
     vector<Professor> *professors;
     CourseManager     *courseManager;
+    function<void()>   save;
 
     QStackedWidget *stack;
 
-    // Add student
+    // Live stat labels (home page)
+    QLabel *statStudents;
+    QLabel *statProfessors;
+    QLabel *statCourses;
+
+    // Live table (students page)
+    QTableWidget *studentsTable;
+
+    // Add student inputs
     QLineEdit *addStudentID, *addStudentName, *addStudentEmail, *addStudentPwd;
     QLabel    *addStudentStatus;
 
@@ -65,7 +76,11 @@ private:
     QWidget *makeDeleteStudentPage();
     QWidget *makeCreateCoursePage();
     QWidget *makeAssignInstructorPage();
-    QPushButton* makeNavButton(const QString &text);
+
+    void refreshHomePage();
+    void refreshStudentsPage();
+
+    QPushButton *makeNavButton(const QString &text);
 };
 
 #endif

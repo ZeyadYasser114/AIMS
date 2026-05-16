@@ -1,0 +1,5 @@
+C:/Users/zuzz4/OneDrive/Documents/UCMS1/build/Desktop_Qt_6_11_0_MinGW_64_bit-Debug/CMakeFiles/UCMS.dir
+C:/Users/zuzz4/OneDrive/Documents/UCMS1/build/Desktop_Qt_6_11_0_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+C:/Users/zuzz4/OneDrive/Documents/UCMS1/build/Desktop_Qt_6_11_0_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/zuzz4/OneDrive/Documents/UCMS1/build/Desktop_Qt_6_11_0_MinGW_64_bit-Debug/CMakeFiles/UCMS_autogen_timestamp_deps.dir
+C:/Users/zuzz4/OneDrive/Documents/UCMS1/build/Desktop_Qt_6_11_0_MinGW_64_bit-Debug/CMakeFiles/UCMS_autogen.dir

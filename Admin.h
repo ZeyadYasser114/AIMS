@@ -2,7 +2,6 @@
 #define ADMIN_H
 
 #include <string>
-
 using namespace std;
 
 class Admin {
@@ -17,13 +16,9 @@ public:
 
     string getAdminID();
     string getUsername();
+    string getPassword();
     string getEmail();
-    bool validatePassword(string pwd);
-    void addStudent(string studentID, string name, string email);
-    void deleteStudent(string studentID);
-    void createCourse(string courseID, string name, int credits, int capacity);
-    void editCourseInfo(string courseID, string field, string value);
-    void assignInstructor(string courseID, string professorID);
+    bool   validatePassword(string pwd);
 };
 
 #endif
