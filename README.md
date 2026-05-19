@@ -154,4 +154,4 @@ The system seeds demo accounts at startup for testing:
 |---|---|---|
 | Phase 1 | ✅ Complete | Project proposal & system design documentation |
 | Phase 2 | ✅ Complete | Core class implementation, UI, and all 16 operation classes |
-| Phase 3 | 🔄 In Progress | TBD — likely file persistence, expanded features, or GUI |
+| Phase 3 | ✅ Complete | GUI, Data storing, GPA Calculator|
